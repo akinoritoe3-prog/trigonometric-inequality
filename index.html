@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三角比の不等式 視覚化シミュレーター Pro v5</title>
+    <title>三角比・方程式・不等式 視覚化シミュレーター Pro v7</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -19,6 +19,42 @@
             color: #2c3e50;
             margin-bottom: 20px;
         }
+        
+        /* モード選択（メニュー）画面 */
+        #menu-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .menu-btn {
+            padding: 16px 20px;
+            font-size: 17px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.1s, background-color 0.2s;
+            text-align: left;
+        }
+        .menu-btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-mode-eval { background-color: #3498db; }
+        .btn-mode-eval:hover { background-color: #2980b9; }
+        .btn-mode-eq { background-color: #2ecc71; }
+        .btn-mode-eq:hover { background-color: #27ae60; }
+        .btn-mode-ineq { background-color: #9b59b6; }
+        .btn-mode-ineq:hover { background-color: #8e44ad; }
+
+        /* メインコンテナ */
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -30,10 +66,29 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             max-width: 1150px;
             width: 100%;
+            position: relative;
         }
+        .nav-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-back {
+            background-color: #7f8c8d;
+            color: white;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .btn-back:hover { background-color: #95a5a6; }
+
         .control-panel {
             flex: 1.2;
-            min-width: 420px;
+            min-width: 380px;
         }
         .canvas-panel {
             display: flex;
@@ -44,9 +99,9 @@
         .inequality-row {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             background: #f8f9fa;
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
             margin-bottom: 12px;
             border-left: 5px solid #ccc;
@@ -69,11 +124,10 @@
             background-color: white;
         }
         input[type="number"] {
-            width: 50px;
+            width: 65px;
             text-align: center;
         }
         input[type="range"] {
-            width: 90px;
             cursor: pointer;
         }
         button {
@@ -100,9 +154,9 @@
         }
         .btn-delete:hover { background-color: #c0392b; }
         
-        .show-solution-container {
-            background-color: #ffeef0;
-            border: 2px dashed #ff7675;
+        .solution-box-container {
+            background-color: #eef9ff;
+            border: 2px dashed #3498db;
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
@@ -110,21 +164,29 @@
             flex-direction: column;
             align-items: center;
         }
+        .solution-box-container.ineq-box {
+            background-color: #ffeef0;
+            border-color: #ff7675;
+        }
+
         .switch-label {
             font-weight: bold;
-            color: #d63031;
+            color: #2980b9;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 16px;
         }
+        .switch-label.ineq-label {
+            color: #d63031;
+        }
         .switch-label input {
             width: 20px;
             height: 20px;
             cursor: pointer;
         }
-        #solution-text-container {
+        .solution-text-display {
             margin-top: 12px;
             font-size: 1.25em;
             color: #2c3e50;
@@ -133,7 +195,42 @@
             border-radius: 6px;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
             font-family: 'Times New Roman', serif;
+            text-align: center;
         }
+
+        /* 角度計算モード用表示 */
+        .value-card-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .value-card {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+        .card-cos { background-color: #e74c3c; }
+        .card-sin { background-color: #2980b9; }
+        .card-val {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .preset-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .btn-preset {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        .btn-preset:hover { background: #cbd5e0; }
 
         canvas {
             background: #ffffff;
@@ -148,11 +245,14 @@
             background: #f1f2f6;
             padding: 10px 15px;
             border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
         }
         .legend-row {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             align-items: center;
+            justify-content: center;
         }
         .legend-item {
             display: flex;
@@ -168,22 +268,144 @@
 </head>
 <body>
 
-    <h1>三角比の不等式 視覚化ツール</h1>
+    <h1>三角比 視覚化ツール Pro</h1>
 
-    <div class="container">
+    <!-- 1. メニュー（前画面） -->
+    <div id="menu-screen">
+        <h2>機能を選択してください</h2>
+        <button class="menu-btn btn-mode-eval" onclick="switchMode('eval')">
+            ① 角度 θ から sin / cos の値を可視化
+        </button>
+        <button class="menu-btn btn-mode-eq" onclick="switchMode('eq')">
+            ② 三角方程式 シミュレーター
+        </button>
+        <button class="menu-btn btn-mode-ineq" onclick="switchMode('ineq')">
+            ③ 三角不等式 シミュレーター
+        </button>
+    </div>
+
+    <!-- 2. ① 角度θの三角比計算・可視化画面 -->
+    <div id="eval-container" class="container" style="display: none;">
+        <div class="nav-header">
+            <h3 style="margin: 0;">① 角度 θ と三角比の値</h3>
+            <button class="btn-back" onclick="switchMode('menu')">← メニューに戻る</button>
+        </div>
+        <div class="control-panel">
+            <div class="control-group" style="gap: 15px;">
+                <div>
+                    <label style="font-weight: bold;">角度 θ (度数法): </label>
+                    <div class="slider-container" style="margin-top: 5px;">
+                        <input type="range" id="eval-theta-range" min="0" max="360" value="45" step="1" style="width: 200px;" oninput="updateThetaFromDeg(this.value)">
+                        <input type="number" id="eval-theta-deg" min="0" max="360" value="45" oninput="updateThetaFromDeg(this.value)"> °
+                    </div>
+                </div>
+                <div>
+                    <label style="font-weight: bold;">角度 θ (弧度法): </label>
+                    <span id="eval-theta-rad" style="font-family: 'Times New Roman', serif; font-size: 1.1em; margin-left: 10px;">π/4 rad</span>
+                </div>
+                <div>
+                    <label style="font-size: 13px; color: #666;">代表角ショートカット:</label>
+                    <div class="preset-btn-group">
+                        <button class="btn-preset" onclick="updateThetaFromDeg(0)">0°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(30)">30°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(45)">45°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(60)">60°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(90)">90°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(120)">120°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(135)">135°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(150)">150°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(180)">180°</button>
+                        <button class="btn-preset" onclick="updateThetaFromDeg(270)">270°</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="value-card-group">
+                <div class="value-card card-cos">
+                    <div>cos(θ) [X座標]</div>
+                    <div id="eval-cos-val" class="card-val">0.707</div>
+                    <div id="eval-cos-frac" style="font-size:0.9em; opacity:0.9;">( √2/2 )</div>
+                </div>
+                <div class="value-card card-sin">
+                    <div>sin(θ) [Y座標]</div>
+                    <div id="eval-sin-val" class="card-val">0.707</div>
+                    <div id="eval-sin-frac" style="font-size:0.9em; opacity:0.9;">( √2/2 )</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-panel">
+            <canvas id="evalCanvas" width="500" height="500"></canvas>
+            <div class="legend">
+                <div class="legend-row">
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #e74c3c;"></div>
+                        <span>cos(θ) : 横軸の長さ (X座標)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #2980b9;"></div>
+                        <span>sin(θ) : 縦軸の長さ (Y座標)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ② 三角方程式シミュレーター画面（新規） -->
+    <div id="eq-container" class="container" style="display: none;">
+        <div class="nav-header">
+            <h3 style="margin: 0;">② 三角方程式 シミュレーター</h3>
+            <button class="btn-back" onclick="switchMode('menu')">← メニューに戻る</button>
+        </div>
+        <div class="control-panel">
+            <h3>方程式のリスト</h3>
+            <div id="equation-list"></div>
+            <button class="btn-add" onclick="addEquation()">＋ 方程式を追加</button>
+            
+            <div class="solution-box-container">
+                <label class="switch-label">
+                    <input type="checkbox" id="show-eq-solution" onchange="drawEq()" checked>
+                    <span>🎯 方程式の解 (0 ≤ θ &lt; 2π) を表示する</span>
+                </label>
+                <div id="eq-solution-text-container" class="solution-text-display"></div>
+            </div>
+        </div>
+
+        <div class="canvas-panel">
+            <canvas id="eqCanvas" width="500" height="500"></canvas>
+            <div class="legend">
+                <div class="legend-row">
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #e74c3c;"></div>
+                        <span>解となる動径・交点</span>
+                    </div>
+                    <div class="legend-item">
+                        <span style="border-bottom: 2px solid #666; padding-bottom: 2px; line-height:1;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <span>直線 (x = k / y = k)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ③ 三角不等式シミュレーター画面 -->
+    <div id="ineq-container" class="container" style="display: none;">
+        <div class="nav-header">
+            <h3 style="margin: 0;">③ 三角不等式 シミュレーター</h3>
+            <button class="btn-back" onclick="switchMode('menu')">← メニューに戻る</button>
+        </div>
         <div class="control-panel">
             <h3>不等式のリスト</h3>
             <div id="inequality-list"></div>
             <button class="btn-add" onclick="addInequality()">＋ 不等式を追加</button>
             
-            <div class="show-solution-container">
-                <label class="switch-label">
-                    <input type="checkbox" id="show-solution" onchange="draw()">
+            <div class="solution-box-container ineq-box">
+                <label class="switch-label ineq-label">
+                    <input type="checkbox" id="show-solution" onchange="drawIneq()" checked>
                     <span>🎯 共通部分（解）を単位円内に表示する</span>
                 </label>
-                <div id="solution-text-container" style="display: none;"></div>
+                <div id="solution-text-container" class="solution-text-display"></div>
             </div>
-
         </div>
 
         <div class="canvas-panel">
@@ -216,11 +438,9 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('unitCircleCanvas');
-        const ctx = canvas.getContext('2d');
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;
-        const r = 150; 
+        // Global State & Switching
+        let currentMode = 'menu';
+        let thetaDeg = 45;
 
         const colors = ['#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#f1c40f'];
 
@@ -235,6 +455,490 @@
             { label: '-√3/2', val: -Math.sqrt(3)/2 },
             { label: '-1', val: -1 }
         ];
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('menu-screen').style.display = (mode === 'menu') ? 'flex' : 'none';
+            document.getElementById('eval-container').style.display = (mode === 'eval') ? 'flex' : 'none';
+            document.getElementById('eq-container').style.display = (mode === 'eq') ? 'flex' : 'none';
+            document.getElementById('ineq-container').style.display = (mode === 'ineq') ? 'flex' : 'none';
+
+            if (mode === 'eval') {
+                updateThetaFromDeg(thetaDeg);
+            } else if (mode === 'eq') {
+                renderEqList();
+            } else if (mode === 'ineq') {
+                renderList();
+            }
+        }
+
+        function getAngleHTML(k) {
+            if (k === 0) return '0';
+            if (k === 24) return '2&pi;';
+            let g = (a, b) => b ? g(b, a % b) : Math.abs(a);
+            let divisor = g(k, 12);
+            let n = k / divisor;
+            let d = 12 / divisor;
+            let nStr = (n === 1 ? '' : n) + '&pi;';
+            if (d === 1) return nStr;
+            return `<span style="display:inline-block; vertical-align:middle; text-align:center; font-size:0.85em; margin: 0 3px; line-height: 1.2;"><span style="border-bottom:2px solid #2c3e50; display:block;">${nStr}</span><span>${d}</span></span>`;
+        }
+
+        // ==========================================
+        // モード①: 角度θの計算・可視化ロジック
+        // ==========================================
+        const evalCanvas = document.getElementById('evalCanvas');
+        const evalCtx = evalCanvas.getContext('2d');
+
+        function updateThetaFromDeg(val) {
+            thetaDeg = parseFloat(val) || 0;
+            if (thetaDeg < 0) thetaDeg = 0;
+            if (thetaDeg > 360) thetaDeg = 360;
+
+            document.getElementById('eval-theta-range').value = thetaDeg;
+            document.getElementById('eval-theta-deg').value = thetaDeg;
+
+            const rad = thetaDeg * Math.PI / 180;
+            const cosVal = Math.cos(rad);
+            const sinVal = Math.sin(rad);
+
+            document.getElementById('eval-cos-val').innerText = cosVal.toFixed(3);
+            document.getElementById('eval-sin-val').innerText = sinVal.toFixed(3);
+            
+            document.getElementById('eval-cos-frac').innerText = getFractionLabel(cosVal);
+            document.getElementById('eval-sin-frac').innerText = getFractionLabel(sinVal);
+            document.getElementById('eval-theta-rad').innerHTML = getRadLabel(thetaDeg);
+
+            drawEval();
+        }
+
+        function getFractionLabel(val) {
+            const abs = Math.abs(val);
+            const sign = val < -0.001 ? '-' : '';
+            if (Math.abs(abs - 1) < 0.005) return `(${sign}1)`;
+            if (Math.abs(abs - Math.sqrt(3)/2) < 0.005) return `(${sign}√3/2)`;
+            if (Math.abs(abs - Math.sqrt(2)/2) < 0.005) return `(${sign}√2/2)`;
+            if (Math.abs(abs - 0.5) < 0.005) return `(${sign}1/2)`;
+            if (Math.abs(abs) < 0.005) return `(0)`;
+            return '';
+        }
+
+        function getRadLabel(deg) {
+            if (deg === 0) return '0 rad';
+            if (deg === 360) return '2π rad';
+            let g = (a, b) => b ? g(b, a % b) : Math.abs(a);
+            let gcd = g(deg, 180);
+            let n = deg / gcd;
+            let d = 180 / gcd;
+            let nStr = (n === 1 ? '' : n) + 'π';
+            if (d === 1) return `${nStr} rad`;
+            return `${nStr}/${d} rad`;
+        }
+
+        function drawEval() {
+            const cx = evalCanvas.width / 2;
+            const cy = evalCanvas.height / 2;
+            const r = 150;
+            const rad = thetaDeg * Math.PI / 180;
+
+            evalCtx.clearRect(0, 0, evalCanvas.width, evalCanvas.height);
+
+            // 1. 軸
+            evalCtx.strokeStyle = '#e0e0e0';
+            evalCtx.lineWidth = 1;
+            evalCtx.beginPath();
+            evalCtx.moveTo(0, cy); evalCtx.lineTo(evalCanvas.width, cy);
+            evalCtx.moveTo(cx, 0); evalCtx.lineTo(cx, evalCanvas.height);
+            evalCtx.stroke();
+
+            // 単位円
+            evalCtx.strokeStyle = '#2c3e50';
+            evalCtx.lineWidth = 2;
+            evalCtx.beginPath();
+            evalCtx.arc(cx, cy, r, 0, Math.PI * 2);
+            evalCtx.stroke();
+
+            // Pの座標
+            const px = cx + r * Math.cos(rad);
+            const py = cy - r * Math.sin(rad);
+
+            // 角度のアーク
+            if (thetaDeg > 0) {
+                evalCtx.fillStyle = 'rgba(241, 196, 15, 0.25)';
+                evalCtx.beginPath();
+                evalCtx.moveTo(cx, cy);
+                evalCtx.arc(cx, cy, 40, 0, -rad, true);
+                evalCtx.closePath();
+                evalCtx.fill();
+
+                evalCtx.strokeStyle = '#f39c12';
+                evalCtx.lineWidth = 2;
+                evalCtx.beginPath();
+                evalCtx.arc(cx, cy, 40, 0, -rad, true);
+                evalCtx.stroke();
+            }
+
+            // 垂線
+            evalCtx.strokeStyle = '#95a5a6';
+            evalCtx.lineWidth = 1.5;
+            evalCtx.setLineDash([4, 4]);
+            evalCtx.beginPath();
+            evalCtx.moveTo(px, py); evalCtx.lineTo(px, cy);
+            evalCtx.moveTo(px, py); evalCtx.lineTo(cx, py);
+            evalCtx.stroke();
+            evalCtx.setLineDash([]);
+
+            // cos 線分
+            evalCtx.strokeStyle = '#e74c3c';
+            evalCtx.lineWidth = 4;
+            evalCtx.beginPath();
+            evalCtx.moveTo(cx, cy);
+            evalCtx.lineTo(px, cy);
+            evalCtx.stroke();
+
+            // sin 線分
+            evalCtx.strokeStyle = '#2980b9';
+            evalCtx.lineWidth = 4;
+            evalCtx.beginPath();
+            evalCtx.moveTo(px, cy);
+            evalCtx.lineTo(px, py);
+            evalCtx.stroke();
+
+            // 動径 OP
+            evalCtx.strokeStyle = '#2c3e50';
+            evalCtx.lineWidth = 2.5;
+            evalCtx.beginPath();
+            evalCtx.moveTo(cx, cy);
+            evalCtx.lineTo(px, py);
+            evalCtx.stroke();
+
+            // 点 P
+            evalCtx.fillStyle = '#2c3e50';
+            evalCtx.beginPath();
+            evalCtx.arc(px, py, 6, 0, Math.PI * 2);
+            evalCtx.fill();
+
+            // ラベル
+            evalCtx.font = '14px sans-serif';
+            evalCtx.fillStyle = '#2c3e50';
+            evalCtx.fillText(`P (${Math.cos(rad).toFixed(2)}, ${Math.sin(rad).toFixed(2)})`, px + (Math.cos(rad)>=0?10:-110), py + (Math.sin(rad)>=0?-10:20));
+            evalCtx.fillText('O', cx - 15, cy + 15);
+            evalCtx.fillText('1', cx + r + 5, cy + 15);
+            evalCtx.fillText('-1', cx - r - 20, cy + 15);
+            evalCtx.fillText('1', cx - 15, cy - r - 5);
+            evalCtx.fillText('-1', cx - 20, cy + r + 15);
+        }
+
+        // ==========================================
+        // モード②: 三角方程式シミュレーターロジック（新規）
+        // ==========================================
+        const eqCanvas = document.getElementById('eqCanvas');
+        const eqCtx = eqCanvas.getContext('2d');
+
+        let equations = [
+            { id: 1, func: 'sin', val: 0.5, color: colors[0], currentLabel: '1/2' }
+        ];
+        let nextEqId = 2;
+
+        function renderEqList() {
+            const listDiv = document.getElementById('equation-list');
+            listDiv.innerHTML = '';
+
+            equations.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'inequality-row';
+                row.style.borderLeftColor = item.color;
+                row.id = `eq-row-${item.id}`;
+
+                let isSpecial = false;
+                let valueOptions = '';
+                let matchedLabel = '';
+                
+                specialValues.forEach(sv => {
+                    const isSelected = Math.abs(item.val - sv.val) < 0.005;
+                    if (isSelected) {
+                        isSpecial = true;
+                        matchedLabel = sv.label;
+                    }
+                    valueOptions += `<option value="${sv.val}" ${isSelected ? 'selected' : ''}>${sv.label}</option>`;
+                });
+
+                item.currentLabel = isSpecial ? matchedLabel : parseFloat(item.val.toFixed(2)).toString();
+
+                let selectHtml = '';
+                if (!isSpecial) {
+                    const formattedVal = parseFloat(item.val.toFixed(2));
+                    selectHtml = `
+                        <select class="val-select" onchange="updateEquation(${item.id}, 'val', parseFloat(this.value))">
+                            <option value="${item.val}" selected>${formattedVal}</option>
+                            ${valueOptions}
+                        </select>
+                    `;
+                } else {
+                    selectHtml = `
+                        <select class="val-select" onchange="updateEquation(${item.id}, 'val', parseFloat(this.value))">
+                            ${valueOptions}
+                        </select>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <span style="font-weight:bold; color:${item.color}; min-width:15px;">#${index+1}</span>
+                    <select onchange="updateEquation(${item.id}, 'func', this.value)">
+                        <option value="sin" ${item.func === 'sin' ? 'selected' : ''}>sin(θ)</option>
+                        <option value="cos" ${item.func === 'cos' ? 'selected' : ''}>cos(θ)</option>
+                    </select>
+                    <span style="font-weight:bold;">=</span>
+                    <div class="control-group">
+                        ${selectHtml}
+                        <div class="slider-container">
+                            <input class="val-range" type="range" min="-1.1" max="1.1" step="0.1" 
+                                value="${Math.max(-1.1, Math.min(1.1, item.val))}" 
+                                oninput="updateEquation(${item.id}, 'val', parseFloat(this.value))">
+                            <input class="val-number" type="number" min="-1.1" max="1.1" step="0.1" 
+                                value="${parseFloat(item.val.toFixed(2))}" 
+                                oninput="updateEquation(${item.id}, 'val', parseFloat(this.value) || 0)">
+                        </div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteEquation(${item.id})">削除</button>
+                `;
+                listDiv.appendChild(row);
+            });
+            drawEq();
+        }
+
+        function addEquation() {
+            if (equations.length >= 5) {
+                alert("最大5つまでです。");
+                return;
+            }
+            const color = colors[(equations.length ? colors.indexOf(equations[equations.length-1].color)+1 : 0) % colors.length];
+            equations.push({ id: nextEqId++, func: 'cos', val: 0.5, color: color, currentLabel: '1/2' });
+            renderEqList();
+        }
+
+        function deleteEquation(id) {
+            equations = equations.filter(item => item.id !== id);
+            renderEqList();
+        }
+
+        function updateEquation(id, field, value) {
+            const item = equations.find(item => item.id === id);
+            if (item) {
+                item[field] = value;
+                if (field === 'val') {
+                    const row = document.getElementById(`eq-row-${id}`);
+                    if (row) {
+                        const select = row.querySelector('.val-select');
+                        const range = row.querySelector('.val-range');
+                        const number = row.querySelector('.val-number');
+                        
+                        let isSpecial = false;
+                        let matchedLabel = '';
+                        for (let sv of specialValues) {
+                            if (Math.abs(value - sv.val) < 0.005) {
+                                select.value = sv.val;
+                                isSpecial = true;
+                                matchedLabel = sv.label;
+                                break;
+                            }
+                        }
+                        
+                        if (!isSpecial) {
+                            select.innerHTML = `<option value="${value}" selected>${parseFloat(value.toFixed(2))}</option>` 
+                                + specialValues.map(sv => `<option value="${sv.val}">${sv.label}</option>`).join('');
+                            item.currentLabel = parseFloat(value.toFixed(2)).toString();
+                        } else {
+                            select.value = value;
+                            item.currentLabel = matchedLabel;
+                        }
+                        range.value = Math.max(-1.1, Math.min(1.1, value));
+                        number.value = parseFloat(value.toFixed(2));
+                    }
+                } else {
+                    renderEqList();
+                    return;
+                }
+                drawEq();
+            }
+        }
+
+        function getEqSolutions() {
+            let solutions = [];
+            let allSpecial = equations.every(item => specialValues.some(sv => Math.abs(item.val - sv.val) < 0.005));
+
+            equations.forEach(item => {
+                let v = Math.max(-1, Math.min(1, item.val));
+                if (Math.abs(item.val) > 1) return;
+
+                if (item.func === 'sin') {
+                    let a = Math.asin(v);
+                    if (a < 0) a += 2 * Math.PI;
+                    let a2 = Math.PI - Math.asin(v);
+                    if (a2 < 0) a2 += 2 * Math.PI;
+                    solutions.push(a);
+                    if (Math.abs(a - a2) > 1e-5) solutions.push(a2);
+                } else {
+                    let a = Math.acos(v);
+                    let a2 = 2 * Math.PI - a;
+                    solutions.push(a);
+                    if (Math.abs(a - a2) > 1e-5 && Math.abs(a2 - 2*Math.PI) > 1e-5) solutions.push(a2);
+                }
+            });
+
+            // ソート
+            solutions.sort((a, b) => a - b);
+            
+            // 重複排除
+            let uniqueSols = [];
+            solutions.forEach(s => {
+                if (!uniqueSols.some(u => Math.abs(u - s) < 1e-4)) {
+                    uniqueSols.push(s);
+                }
+            });
+
+            if (uniqueSols.length === 0) return { html: "解なし", allSpecial: true };
+
+            let htmlList = uniqueSols.map(rad => {
+                let k = Math.round((rad / (Math.PI / 12)));
+                return getAngleHTML(k);
+            });
+
+            return { html: "&theta; = " + htmlList.join(' , '), allSpecial: allSpecial };
+        }
+
+        function drawEq() {
+            const cx = eqCanvas.width / 2;
+            const cy = eqCanvas.height / 2;
+            const r = 150;
+
+            eqCtx.clearRect(0, 0, eqCanvas.width, eqCanvas.height);
+
+            const showSolution = document.getElementById('show-eq-solution').checked;
+            const solContainer = document.getElementById('eq-solution-text-container');
+
+            if (showSolution) {
+                solContainer.style.display = 'block';
+                if (equations.length === 0) {
+                    solContainer.innerHTML = '<span style="font-size: 0.8em; color: #888;">方程式を設定してください</span>';
+                } else {
+                    let res = getEqSolutions();
+                    if (res.allSpecial) {
+                        solContainer.innerHTML = `<strong>${res.html}</strong>`;
+                    } else {
+                        solContainer.innerHTML = '<span style="font-size: 0.75em; color: #888;">※値がすべて代表値の場合のみ、解が数式で表示されます</span>';
+                    }
+                }
+            } else {
+                solContainer.style.display = 'none';
+            }
+
+            // 1. 軸
+            eqCtx.strokeStyle = '#e0e0e0';
+            eqCtx.lineWidth = 1;
+            eqCtx.beginPath();
+            eqCtx.moveTo(0, cy); eqCtx.lineTo(eqCanvas.width, cy);
+            eqCtx.moveTo(cx, 0); eqCtx.lineTo(cx, eqCanvas.height);
+            eqCtx.stroke();
+
+            // 2. 単位円
+            eqCtx.strokeStyle = '#2c3e50';
+            eqCtx.lineWidth = 2;
+            eqCtx.beginPath();
+            eqCtx.arc(cx, cy, r, 0, Math.PI * 2);
+            eqCtx.stroke();
+
+            // 3. 各方程式の直線と交点・動径を描画
+            equations.forEach(item => {
+                const val = item.val;
+                if (Math.abs(val) > 1.1) return;
+
+                eqCtx.strokeStyle = item.color;
+                eqCtx.lineWidth = 2;
+
+                // 直線描画
+                if (item.func === 'sin') {
+                    let drawY = cy - val * r;
+                    eqCtx.beginPath();
+                    eqCtx.moveTo(cx - r - 25, drawY);
+                    eqCtx.lineTo(cx + r + 25, drawY);
+                    eqCtx.stroke();
+
+                    eqCtx.fillStyle = item.color;
+                    eqCtx.font = 'bold 13px sans-serif';
+                    eqCtx.fillText(`y = ${item.currentLabel}`, cx + r + 30, drawY + 4);
+                } else {
+                    let drawX = cx + val * r;
+                    eqCtx.beginPath();
+                    eqCtx.moveTo(drawX, cy - r - 25);
+                    eqCtx.lineTo(drawX, cy + r + 25);
+                    eqCtx.stroke();
+
+                    eqCtx.fillStyle = item.color;
+                    eqCtx.font = 'bold 13px sans-serif';
+                    eqCtx.fillText(`x = ${item.currentLabel}`, drawX - 15, cy - r - 30);
+                }
+
+                // 解の動径・交点
+                if (Math.abs(val) <= 1 && showSolution) {
+                    let angles = [];
+                    if (item.func === 'sin') {
+                        let a = Math.asin(val);
+                        angles.push(a, Math.PI - a);
+                    } else {
+                        let a = Math.acos(val);
+                        angles.push(a, 2 * Math.PI - a);
+                    }
+
+                    angles.forEach(rad => {
+                        let px = cx + r * Math.cos(rad);
+                        let py = cy - r * Math.sin(rad);
+
+                        // 動径
+                        eqCtx.strokeStyle = '#e74c3c';
+                        eqCtx.lineWidth = 2.5;
+                        eqCtx.beginPath();
+                        eqCtx.moveTo(cx, cy);
+                        eqCtx.lineTo(px, py);
+                        eqCtx.stroke();
+
+                        // 角度アーク
+                        eqCtx.strokeStyle = 'rgba(231, 76, 60, 0.4)';
+                        eqCtx.lineWidth = 2;
+                        eqCtx.beginPath();
+                        eqCtx.arc(cx, cy, 35, 0, -rad, true);
+                        eqCtx.stroke();
+
+                        // 交点
+                        eqCtx.fillStyle = '#e74c3c';
+                        eqCtx.beginPath();
+                        eqCtx.arc(px, py, 6, 0, Math.PI * 2);
+                        eqCtx.fill();
+                        eqCtx.strokeStyle = '#ffffff';
+                        eqCtx.lineWidth = 1.5;
+                        eqCtx.stroke();
+                    });
+                }
+            });
+
+            // ラベル
+            eqCtx.fillStyle = '#2c3e50';
+            eqCtx.font = '12px sans-serif';
+            eqCtx.fillText('1', cx + r + 5, cy + 15);
+            eqCtx.fillText('-1', cx - r - 15, cy + 15);
+            eqCtx.fillText('1', cx - 15, cy - r - 5);
+            eqCtx.fillText('-1', cx - 20, cy + r + 15);
+            eqCtx.fillText('O', cx - 15, cy + 15);
+        }
+
+        // ==========================================
+        // モード③: 三角不等式シミュレーターロジック
+        // ==========================================
+        const canvas = document.getElementById('unitCircleCanvas');
+        const ctx = canvas.getContext('2d');
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const r = 150; 
 
         let inequalities = [
             { id: 1, func: 'cos', op: '>', val: -0.5, color: colors[1], currentLabel: '-1/2' }
@@ -310,7 +1014,7 @@
                 `;
                 listDiv.appendChild(row);
             });
-            draw();
+            drawIneq();
         }
 
         function addInequality() {
@@ -365,22 +1069,7 @@
                     renderList();
                     return;
                 }
-                draw();
-            }
-        }
-
-        // ==========================================
-        // 厳密な数式化・角度計算ロジック
-        // ==========================================
-
-        function checkCondition(item, theta) {
-            let targetVal = item.func === 'sin' ? Math.sin(theta) : Math.cos(theta);
-            switch(item.op) {
-                case '>':  return targetVal > item.val;
-                case '>=': return targetVal >= item.val;
-                case '<':  return targetVal < item.val;
-                case '<=': return targetVal <= item.val;
-                default:   return false;
+                drawIneq();
             }
         }
 
@@ -420,18 +1109,6 @@
                 }
             }
             return arcs;
-        }
-
-        function getAngleHTML(k) {
-            if (k === 0) return '0';
-            if (k === 24) return '2&pi;';
-            let g = (a, b) => b ? g(b, a % b) : Math.abs(a);
-            let divisor = g(k, 12);
-            let n = k / divisor;
-            let d = 12 / divisor;
-            let nStr = (n === 1 ? '' : n) + '&pi;';
-            if (d === 1) return nStr;
-            return `<span style="display:inline-block; vertical-align:middle; text-align:center; font-size:0.85em; margin: 0 3px; line-height: 1.2;"><span style="border-bottom:2px solid #2c3e50; display:block;">${nStr}</span><span>${d}</span></span>`;
         }
 
         function calculateSolutionRange() {
@@ -480,11 +1157,7 @@
             }).join(' <span style="margin: 0 10px; color:#888;">,</span> ');
         }
 
-        // ==========================================
-        // 描画メイン処理
-        // ==========================================
-
-        function draw() {
+        function drawIneq() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const showSolution = document.getElementById('show-solution').checked;
             const solContainer = document.getElementById('solution-text-container');
@@ -517,10 +1190,9 @@
             ctx.fillText('X (cos)', canvas.width - 45, cy - 10);
             ctx.fillText('Y (sin)', cx + 10, 20);
 
-            // 2. 個別の不等式の領域（それぞれの色で薄く描画）
+            // 2. 個別の不等式の領域
             inequalities.forEach(item => {
                 let arcs = getArcs(item);
-                // HEXカラーをRGBAに変換（透明度0.15）
                 let r_col = parseInt(item.color.slice(1, 3), 16);
                 let g_col = parseInt(item.color.slice(3, 5), 16);
                 let b_col = parseInt(item.color.slice(5, 7), 16);
@@ -536,11 +1208,9 @@
                 });
             });
 
-            // 3. 共通部分（ピンク色エリア）の正確な描画【★修正箇所★】
+            // 3. 共通部分
             if (showSolution && inequalities.length > 0) {
-                ctx.save(); // 現在の描画状態を保存
-                
-                // 全ての不等式の領域を計算し、Canvasのクリップ領域（AND条件）として適用していく
+                ctx.save();
                 inequalities.forEach(item => {
                     let arcs = getArcs(item);
                     ctx.beginPath();
@@ -551,18 +1221,15 @@
                             ctx.lineTo(cx, cy);
                         }
                     });
-                    ctx.clip(); // 現在のパスでクリップ領域を絞り込む
+                    ctx.clip();
                 });
                 
-                // クリップ（切り抜き）された領域全体を薄いピンク色で1回だけ塗りつぶす
-                // 1回しか塗らないため、条件が重なっても色が濃くなりません
-                ctx.fillStyle = 'rgba(255, 20, 147, 0.3)'; // もともとの薄い色に変更
+                ctx.fillStyle = 'rgba(255, 20, 147, 0.3)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.restore(); // クリップ状態を解除して元に戻す
+                ctx.restore();
             }
 
-            // 4. 各不等式の外側ライン
+            // 4. 外側ライン
             inequalities.forEach((item, index) => {
                 let arcs = getArcs(item);
                 ctx.strokeStyle = item.color;
@@ -570,14 +1237,13 @@
                 arcs.forEach(arcInfo => {
                     if (arcInfo.e > arcInfo.s) {
                         ctx.beginPath();
-                        // ここも描画ロジックを統一
                         ctx.arc(cx, cy, r + 15 + index * 10, -arcInfo.s, -arcInfo.e, true);
                         ctx.stroke();
                     }
                 });
             });
 
-            // 5. 境界線（点線・実線）とラベル
+            // 5. 境界線
             inequalities.forEach(item => {
                 ctx.strokeStyle = item.color;
                 ctx.lineWidth = 2;
@@ -613,7 +1279,7 @@
             });
             ctx.setLineDash([]); 
 
-            // 6. 端点の丸（● / ○）
+            // 6. 端点（● / ○）
             inequalities.forEach(item => {
                 const isInclusive = item.op.includes('=');
                 const val = item.val;
@@ -665,7 +1331,8 @@
             ctx.fillText('O', cx - 15, cy + 15);
         }
 
-        renderList();
+        // 初期表示
+        switchMode('menu');
     </script>
 </body>
 </html>
